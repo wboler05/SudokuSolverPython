@@ -223,5 +223,13 @@ But in the second case, we will remove {2, 8} from element `2`, because `2` is n
 
 We process this across all rows, columns, and blocks (blocks have not been tested but is a valid check). If a change is identified, continue iterating back to the intitial simple set relaxation step. 
 
-## Completeness
+# Completeness
 I haven't bothered to check if my solution is complete, only that it's valid.  I also haven't checked the block pair relaxation step, due to row and column being sufficient for all example puzzles tested.  This was just a fun exercise that made me think pretty hard without looking up any current Sudoku theories. 
+
+## Brute-force
+
+Due to several cases that are outside of the scope of what I've thought about, a guess-check brute-force algorithm is implemented after exhausting all set solutions.  In the case that potential solutions are gridlocked, the remaining values are tested one by one using a recursive brute-force algorithm that first checks for elements with remaining potential solutions to try, then one by one it tries to resolve them with the new guess. Ideally, this algorithm should only be entered once, and a scan across the frontier of potential solutions for a single element should net the final solution, but that may not always be the case. 
+
+## No solution found
+
+If by this point no solution is found, then the provided solution prompt is most likely incorrect and should be double-checked. Otherwise the universe has imploded on itself, or I am that much of an idiot that I messed something up. 

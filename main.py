@@ -73,6 +73,13 @@ def check_elements(element_sets:list):
                 return False
     return True
 
+def check_solution(solution: list):
+    for row in solution:
+        for col in row:
+            if col == None:
+                return False
+    return True
+
 def remove_element(i, j, r, solution, element_sets, row_sets, col_sets, block_sets):
     if solution[i][j] is not None:
         return False
@@ -168,12 +175,10 @@ def union_pair_scan_vector(solution_slice, element_set_slice):
 
     valid_idxes = [i for i,s in enumerate(solution_slice) if s is None]
 
-    #union_map_set = defaultdict(dict)
     match_sets = defaultdict(list)
     for i,idx in enumerate(valid_idxes):
         for c_idx in islice(valid_idxes, i+1, None):
             set_union = element_set_slice[idx].union(element_set_slice[c_idx])
-            #union_map_set[idx][c_idx] = set_union
             match_sets[tuple(set_union)].append((idx, c_idx))
 
     change_flag = False
@@ -193,7 +198,7 @@ def union_pair_scan_vector(solution_slice, element_set_slice):
 
 def union_pair_scan_rows(solution, element_sets):
     
-    for r_solution, r_es in zip(solution, element_sets):
+    for i, (r_solution, r_es) in enumerate(zip(solution, element_sets)):
         if union_pair_scan_vector(r_solution, r_es):
             return True
 
@@ -220,19 +225,14 @@ def union_pair_scan_blocks(solution, element_sets, N=3):
         idxes = list()
         b_sol = list()
         b_es = list()
-        for row in range(start_row, N):
-            for col in range(start_col, N):
+        for row in range(start_row, start_row + N):
+            for col in range(start_col, start_col + N):
                 idxes.append((row, col))
                 b_sol.append(solution[row][col])
                 b_es.append(element_sets[row][col])
-        b_b_es = deepcopy(b_es)
         if union_pair_scan_vector(b_sol, b_es):
-            print(b_b_es)
-            print(b_es)
-            print(element_sets[row][col])
             for (row,col), es in zip(idxes, b_es):
                 element_sets[row][col] = es
-            print(element_sets[row][col])
             return True
     return False
 
@@ -242,10 +242,42 @@ def union_pair_scan(solution, element_sets, row_sets, col_sets, block_sets):
         return True
     if union_pair_scan_cols(solution, element_sets):
         return True
-    #if union_pair_scan_blocks(solution, element_sets):
-    #    return True
+    if union_pair_scan_blocks(solution, element_sets):
+        return True
     return False
     
+
+def brute_force(solution, element_sets):
+
+    found = False
+    frontier = set()
+    frontier_row = -1
+    frontier_col = -1
+
+    for row,row_list in enumerate(element_sets):
+        for col, el in enumerate(row_list):
+            if len(el) > 1:
+                found = True
+                frontier = el
+                frontier_row = row
+                frontier_col = col
+                break
+        if found:
+            break
+
+    if not found:
+        return solution
+
+    for v in frontier:
+        new_solution = deepcopy(solution)
+        new_solution[frontier_row][frontier_col] = v
+        new_solution = solve(new_solution)
+
+        if check_solution(new_solution):
+            return new_solution
+        
+    return solution
+
 
 def solve(grid:list):
     solution = deepcopy(grid)
@@ -275,6 +307,10 @@ def solve(grid:list):
         print(f'Iteration {idx}')
         idx += 1
         print_puzzle(solution)
+
+    if not check_elements(element_sets):
+        # For cases I haven't considered
+        solution = brute_force(solution, element_sets)
 
     return solution
 
